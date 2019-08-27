@@ -232,9 +232,17 @@ INSERT INTO `salary` (`emp_id`, `basic`, `salary_date`) VALUES
 -- Triggers `salary`
 --
 DELIMITER $$
-CREATE TRIGGER `SET_basic_ft` BEFORE INSERT ON `salary` FOR EACH ROW BEGIN IF NEW.basic < 5000 AND (SELECT COUNT(*) FROM employee WHERE employee.emp_id = NEW.emp_id AND employee.type_of_work = 'F') THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'INVALID basic for full-time employee; must be greater than 5000 USD'; END IF; END
+CREATE TRIGGER `SET_basic_ft`
+    BEFORE INSERT ON `salary`
+    FOR EACH ROW BEGIN IF NEW.basic < 5000 AND (SELECT COUNT(*) FROM employee
+    WHERE employee.emp_id = NEW.emp_id AND employee.type_of_work = 'F')
+    THEN SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'INVALID basic for full-time employee; must be greater than 5000 USD';
+    END IF; END
 $$
 DELIMITER ;
+
+
 DELIMITER $$
 CREATE TRIGGER `SET_basic_pt` BEFORE INSERT ON `salary` FOR EACH ROW BEGIN IF (SELECT COUNT(*) FROM employee WHERE NEW.emp_id = employee.emp_id AND employee.type_of_work = 'P') THEN SET NEW.basic = (SELECT SUM(num_of_hours) FROM ft_pt_work WHERE emp_id = NEW.emp_id) * (SELECT hourly_rate FROM employee WHERE NEW.emp_id = emp_id); END IF; END
 $$
